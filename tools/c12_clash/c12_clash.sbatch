@@ -16,11 +16,11 @@ src=$(echo "$SAPIA_LINE" | cut -f2)
 mkdir -p "$OUT_DIR"
 
 python - "$src" "$OUT_DIR/$name.json" <<'PYEOF'
-import json, sys
+import json, os, sys
 import numpy as np
 import gemmi
 
-C12_PDB = "/data/brussel/118/vsc11875/SlyBprosapia/inputs/slyB_C12_boltz_relaxed_aligned.pdb"
+C12_PDB = os.environ["C12_PDB"]  # exported by the c12_clash activation script
 SLYB_LEN = 135
 NEIGHBOUR_CHAINS = ["L", "C"]
 
