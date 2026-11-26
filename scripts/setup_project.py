@@ -116,9 +116,8 @@ def build_c12_templates(full_c12_path: Path, info: dict, run_dir: Path) -> dict:
         for res in model[src_chain]:
             if s <= res.seqid.num <= e:
                 r = res.clone()
-                if offset:
-                    r.seqid = gemmi.SeqId(res.seqid.num + offset, " ")
-                    r.label_seq = res.seqid.num + offset
+                r.seqid = gemmi.SeqId(res.seqid.num + offset, " ")
+                r.label_seq = res.seqid.num + offset
                 r.subchain = name
                 new_chain.add_residue(r)
         return new_chain
