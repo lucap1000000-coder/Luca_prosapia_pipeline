@@ -41,7 +41,7 @@ def build_tm_clash_manifest(ctx: ManifestCtx[TmClashArgs]) -> list[tuple[str, ..
     for name in ctx.ready.index:
         name = cast(str, name)
         src = str(ctx.ready.at[name, ctx.args.input_column])
-        subunit_len = int(ctx.ready.at[name, "subunit_len"]) if "subunit_len" in ctx.ready.columns else 135
+        subunit_len = int(ctx.ready.at[name, "subunit_len"])
         tm_start = ctx.args.tm_start or int(ctx.ready.at[name, "tm_start"]) if "tm_start" in ctx.ready.columns else 63
         tm_end = ctx.args.tm_end or int(ctx.ready.at[name, "tm_end"]) if "tm_end" in ctx.ready.columns else 100
         manifest_rows.append((name, src, str(subunit_len), str(tm_start), str(tm_end)))
