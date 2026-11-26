@@ -1,9 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=proteinmpnn
-#SBATCH --clusters=anansi
 #SBATCH --time=04:00:00
 #SBATCH --nodes=1
-#SBATCH --gres=shard:1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=8G
