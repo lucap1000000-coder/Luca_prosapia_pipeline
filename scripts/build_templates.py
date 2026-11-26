@@ -55,6 +55,17 @@ def check_boltz_cif(path: Path, expected_nres: int) -> list[str]:
     return problems
 
 
+def arc_angle(path: Path) -> float:
+    """Rotation between the two halves of the fused dimer (should be 360/ring_size)."""
+    import numpy as np
+    ch = gemmi.read_structure(str(path))[0][0]
+    half = len(ch) // 2
+    pos = lambda rs: [gemmi.Position(*r["CA"][0].pos.tolist()) for r in rs]
+    sp = gemmi.superpose_positions(pos(list(ch)[:half]), pos(list(ch)[half:]))
+    m = np.array(sp.transform.mat.tolist())
+    return float(np.degrees(np.arccos((np.trace(m) - 1) / 2)))
+
+
 def write_yaml(path: Path, cif: Path) -> None:
     path.write_text(
         f"templates:\n  - cif: {cif.resolve()}\n    chain_id: [A]\n    template_id: [A]\n"
@@ -83,6 +94,12 @@ def main() -> int:
     tdir.mkdir(exist_ok=True)
 
     info = get_protein_info(a.pdb, tm_start=a.tm_start, tm_end=a.tm_end)
+    ca, cb = info["chain_a"], info["chain_b"]
+    if ca not in ring_chains or cb not in ring_chains:
+        sys.exit(f"ERROR: trimmed PDB chains {ca},{cb} not found in the ring file ({' '.join(ring_chains)})")
+    expected_b = ring_chains[(ring_chains.index(ca) + 1) % len(ring_chains)]
+    if cb != expected_b:
+        sys.exit(f"ERROR: chain after {ca} in the ring is {expected_b}, but the trimmed PDB's second chain is {cb}")
     info.update(build_c12_templates(a.full_c12, info, out))
     n = info["subunit_len"]
 
@@ -98,6 +115,11 @@ def main() -> int:
         for pr in probs:
             print("   ->", pr)
         failed = failed or bool(probs)
+
+    ang, want = arc_angle(tdir / "dimer.cif"), 360.0 / a.ring_size
+    ok = abs(ang - want) < 2.0
+    print(f"{'PASS' if ok else 'FAIL'} dimer arc {ang:.3f} deg (expected {want:.3f} for a {a.ring_size}-fold ring)")
+    failed = failed or not ok
 
     info["boltz_dimer_template"] = str((tdir / "dimer.yaml").resolve())
     info["boltz_trimer_template"] = str((tdir / "trimer.yaml").resolve())
